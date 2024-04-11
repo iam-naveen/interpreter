@@ -1,20 +1,21 @@
 package tree
 
+import "fmt"
+
 // Basic interface for all nodes in the AST
 
 type Node interface {
-	Position() int
-	Literal() string
+	String() string
 }
 
 type Statement interface {
 	Node
-	statementNode()
+	StatementNode()
 }
 
 type Expression interface {
 	Node
-	expressionNode()
+	ExpressionNode()
 }
 
 // Program is the root node of the AST
@@ -23,13 +24,10 @@ type Program struct {
 	Statements []Statement
 }
 
-func (p *Program) Position() int {
-	if len(p.Statements) > 0 {
-		return p.Statements[0].Position()
+func (p *Program) String() string {
+	var out string
+	for _, s := range p.Statements {
+		out += fmt.Sprintf("%v", s)
 	}
-	return 0
-}
-
-func (p *Program) Literal() string {
-	return ""
+	return out
 }
