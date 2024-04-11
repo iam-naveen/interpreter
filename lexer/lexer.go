@@ -1,166 +1,190 @@
 package lexer
 
 import (
-	"github.com/iam-naveen/compiler/token"
+	"fmt"
+	"strings"
+	"unicode"
+	"unicode/utf8"
 )
 
+type PieceType int
+
+const (
+	Eof PieceType = iota
+	Eol
+	Keyword
+	Identifier
+	Number
+	StringLiteral
+	ArithmeticOperator
+	LogicalOperator
+	AssignmentOperator
+	Unknown
+)
+
+var lookup = map[string]PieceType{
+	"yen":    Keyword,
+	"sol":    Keyword,
+	"sollu":  Keyword,
+}
+
+type Piece struct {
+	Kind  PieceType
+	Value string
+}
+
+func (p Piece) String() string {
+	switch p.Kind {
+	case Keyword:
+		return fmt.Sprintf("keyword: %s", p.Value)
+	case Identifier:
+		return fmt.Sprintf("identifier: %s", p.Value)
+	case Number:
+		return fmt.Sprintf("number: %s", p.Value)
+	case StringLiteral:
+		return fmt.Sprintf("string: %s", p.Value)
+	case ArithmeticOperator:
+		return fmt.Sprintf("arithmetic: %s", p.Value)
+	case LogicalOperator:
+		return fmt.Sprintf("logical: %s", p.Value)
+	case AssignmentOperator:
+		return fmt.Sprintf("assignment: %s", p.Value)
+	case Eol:
+		return "nextLine"
+	case Eof:
+		return "END"
+	default:
+		return fmt.Sprintf("unknown: %s", p.Value)
+	}
+}
+
 type Lexer struct {
-	input []byte
-	cur   int  // current position in input (points to current char)
-	peek  int  // current reading position in input (after current char)
-	char  byte // current char under examination
+	input   []byte
+	start   int // start position of the piece
+	cur     int // current position in input
+	size    int // size of the current piece
+	channel chan Piece
 }
 
-func New(input []byte) *Lexer {
-	lex := &Lexer{input: input}
-	return lex
+func CreateLexer(input []byte) (*Lexer, chan Piece) {
+	lex := &Lexer{
+		input:   input,
+		channel: make(chan Piece),
+	}
+	go lex.run()
+	return lex, lex.channel
 }
 
-func (lex *Lexer) readChar() {
-	// set the char
-	if lex.peek >= len(lex.input) {
-		lex.char = 0 // mark as end - ASCII code for "NUL"
+func (lex *Lexer) send(p PieceType) {
+	piece := Piece{p, string(lex.input[lex.start:lex.cur])}
+	lex.channel <- piece
+	lex.start = lex.cur
+}
+
+func (lex *Lexer) next() (r rune) {
+	if lex.cur >= len(lex.input) {
+		lex.size = 0
+		return rune(Eof)
+	}
+	r, lex.size = utf8.DecodeRuneInString(string(lex.input[lex.cur:]))
+	lex.cur += lex.size
+	return r
+}
+
+func (lex *Lexer) goBack() {
+	lex.cur -= lex.size
+}
+
+func (lex *Lexer) peek() rune {
+	r := lex.next()
+	lex.goBack()
+	return r
+}
+
+func (lex *Lexer) ignore() {
+	lex.start = lex.cur
+}
+
+func (lex *Lexer) takeOne(valid string) bool {
+	if strings.IndexRune(valid, lex.next()) >= 0 {
+		return true
+	}
+	lex.goBack()
+	return false
+}
+
+func (lex *Lexer) takeMany(valid string) {
+	for strings.IndexRune(valid, lex.next()) >= 0 {
+	}
+	lex.goBack()
+}
+
+func (lex *Lexer) run() {
+	for consumer := initial; consumer != nil; {
+		consumer = consumer(lex)
+	}
+	close(lex.channel)
+}
+
+func consume(lex *Lexer) consumer {
+	if unicode.IsLetter(rune(lex.input[lex.start])) {
+		return consumeAlphaNumeric
+	}
+	if unicode.IsDigit(rune(lex.input[lex.start])) {
+		return consumeNumber
+	}
+	return initial
+}
+
+func consumeAlphaNumeric(lex *Lexer) consumer {
+	lex.takeMany("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_")
+	word := string(lex.input[lex.start:lex.cur])
+	if kind, ok := lookup[word]; ok {
+		lex.send(kind)
 	} else {
-		lex.char = lex.input[lex.peek]
+		lex.send(Identifier)
 	}
-	// move the pointers
-	lex.cur = lex.peek
-	lex.peek += 1
+	return initial
 }
 
-func (lex *Lexer) NextToken() token.Token {
+func consumeNumber(lex *Lexer) consumer {
+	lex.takeMany("0123456789")
+	lex.send(Number)
+	return initial
+}
 
-	tok := token.Token{}
-	lex.readChar()
+type consumer func(*Lexer) consumer
 
-	// neglect whitespaces
-	for lex.char == ' ' || lex.char == '\t' {
-		lex.readChar()
-	}
-
-	if lex.char == 0 {
-		tok.Value = ""
-		tok.Type = token.EOF
-	} else if lex.char == '\n' {
-		tok.Value = ""
-		tok.Type = token.EOL
-	} else if lex.char == '=' {
-		if lex.input[lex.peek] == '=' {
-			lex.readChar()
-			tok.Value = "=="
-			tok.Type = token.EQ
+func initial(lex *Lexer) consumer {
+	for {
+		if lex.cur >= len(lex.input) {
+			lex.send(Eof)
+			return nil
+		}
+		if lex.takeOne("\n") {
+			lex.send(Eol)
+			continue
+		}
+		if lex.takeOne(" \t") {
+			lex.ignore()
+			continue
+		}
+		if lex.takeOne("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_") {
+			return consumeAlphaNumeric
+		}
+		if lex.takeOne("0123456789") {
+			return consumeNumber
+		}
+		if lex.takeOne("+*-/%") {
+			lex.send(ArithmeticOperator)
+			continue
+		}
+		if lex.takeOne("="){
+			lex.send(AssignmentOperator)
+			continue
 		} else {
-			tok.Value = "="
-			tok.Type = token.ASSIGN
-		}
-	} else if lex.char == '+' {
-		tok.Value = "+"
-		tok.Type = token.PLUS
-	} else if lex.char == '-' {
-		tok.Value = "-"
-		tok.Type = token.MINUS
-	} else if lex.char == '!' {
-		if lex.input[lex.peek] == '=' {
-			lex.readChar()
-			tok.Value = "!="
-			tok.Type = token.NEQ
-		} else {
-			tok.Value = "!"
-			tok.Type = token.NOT
-		}
-	} else if lex.char == '*' {
-		tok.Value = "*"
-		tok.Type = token.STAR
-	} else if lex.char == '/' {
-		tok.Value = "/"
-		tok.Type = token.SLASH
-	} else if lex.char == '<' {
-		tok.Value = "<"
-		tok.Type = token.LT
-	} else if lex.char == '>' {
-		tok.Value = ">"
-		tok.Type = token.GT
-	} else if lex.char == ';' {
-		tok.Value = ";"
-		tok.Type = token.SEMICOLON
-	} else if lex.char == '(' {
-		tok.Value = "("
-		tok.Type = token.LPAREN
-	} else if lex.char == ')' {
-		tok.Value = ")"
-		tok.Type = token.RPAREN
-	} else if lex.char == '{' {
-		tok.Value = "{"
-		tok.Type = token.LBRACE
-	} else if lex.char == '}' {
-		tok.Value = "}"
-		tok.Type = token.RBRACE
-	} else if lex.char == ',' {
-		tok.Value = ","
-		tok.Type = token.COMMA
-	} else if lex.char == '"' {
-		tok.Value = lex.getString()
-		tok.Type = token.STR
-	} else {
-		if isLetter(lex.char) {
-			tok.Value = lex.getIdentifier()
-			tok.Type = token.LookUp(tok.Value)
-		} else if isDigit(lex.char) {
-			tok.Value = lex.getNumber()
-			tok.Type = token.INT
+			lex.next()
+			lex.send(Unknown)
 		}
 	}
-	return tok
-}
-
-func isLetter(char byte) bool {
-	// define here the rules for variable names
-	return ('a' <= char && char <= 'z') || ('A' <= char && char <= 'Z') || (char == '_')
-}
-
-func isDigit(char byte) bool {
-	return '0' <= char && char <= '9'
-}
-
-func (lex *Lexer) getString() string {
-	start := lex.cur + 1
-	for {
-		lex.readChar()
-		if lex.char == '"' || lex.char == 0 {
-			break
-		}
-	}
-	return string(lex.input[start:lex.cur])
-}
-
-func (lex *Lexer) getNumber() string {
-	start := lex.cur
-	for {
-		if !lex.isNextDigit() {
-			return string(lex.input[start:lex.peek])
-		}
-		lex.readChar()
-	}
-}
-
-func (lex *Lexer) getIdentifier() string {
-	start := lex.cur
-	for {
-		if !lex.isNextLetter() && !lex.isNextDigit() {
-			return string(lex.input[start:lex.peek])
-		}
-		lex.readChar()
-	}
-}
-
-func (lex *Lexer) isNextEnd() bool {
-	return lex.peek < len(lex.input) && lex.input[lex.peek] == '\n'
-}
-
-func (lex *Lexer) isNextLetter() bool {
-	return lex.peek < len(lex.input) && isLetter(lex.input[lex.peek])
-}
-
-func (lex *Lexer) isNextDigit() bool {
-	return lex.peek < len(lex.input) && isDigit(lex.input[lex.peek])
 }
