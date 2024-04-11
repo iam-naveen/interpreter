@@ -1,24 +1,28 @@
 ## A Programming Language aiming to make programming Easy
 
 ### This language is based on tamil words and sentance stucture
+
 ### It contains tanglish characters which break the barier of typing in tamil
+
 <hr>
 ### Syntax of the langauge
 <hr>
 
 ## Variables
+
 ```
 yen a = 10
 sol name = "naveen"
 ```
 
 ## Conditional Statement
+
 ```
 yen c = 0
-a < b irundha {
+a < b endral {
     c = a + b
 }
-illana a > b irundha {
+illana a > b endral {
     c = a - b
 }
 illana {
@@ -27,6 +31,7 @@ illana {
 ```
 
 ## Loops
+
 ```
 
 // loop iterates for 10 times
@@ -43,21 +48,16 @@ a*10 murai a-- {
 
 // basically a while loop,
 // runs while the expression is true
-a >= b irukum varai {
+a >= b varai {
     a -= 1
-}
-
-// similar to while loop,
-// but loops until the expression becomes true
-a < b aagum varai {
-    "running..." sollu
 }
 ```
 
 ## Functions
+
 ```
 // declare the function
-add seiyal | yen a, yen b | yen {
+add seiyal | yen a, yen b -> yen {
     yen c = a + b
     c ->
 }
@@ -67,6 +67,7 @@ add seiyal | yen a, yen b | yen {
 ```
 
 ## Other Control Flows
+
 ```
 yen a = 100
 
@@ -79,5 +80,18 @@ indha a {
   11 bothu {
     "hi" sollu
   }
+}
+```
+
+also trying to add tamil character support to the language
+
+```
+என் a = 10;
+என் b = 20;
+
+a < b ஆக இருந்தால் {
+
+    "hello" சொல்லு;
+
 }
 ```
