@@ -2,8 +2,10 @@ package parser
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/iam-naveen/compiler/lexer"
+	"github.com/iam-naveen/compiler/tree"
 )
 
 // LookUp table for the keywords
@@ -14,74 +16,128 @@ var lookup = map[string]lexer.PieceType{
 	"sollu": lexer.Keyword,
 }
 
+// Precedence levels for the operators
+const (
+	_ int = iota
+	LOWEST
+	EQUALS  // ==
+	COMPARE // > or <
+	PLUS    // +
+	STAR    // *
+	PREFIX  // -X or !X
+	CALL    // myFunction(X)
+)
+
 type Parser struct {
 	cur     *lexer.Piece
 	prev    *lexer.Piece
 	channel chan lexer.Piece
 }
 
-func (p *Parser) String() string {
-	return fmt.Sprintf("prev: %s, cur: %s", p.prev.Value, p.cur.Value)
+func (p Parser) String() string {
+	C := strings.Trim(p.cur.Value, "\n")
+	if p.prev == nil {
+		return fmt.Sprintf("nil, %s", C)
+	}
+	P := strings.Trim(p.prev.Value, "\n")
+	return fmt.Sprintf("%s, %s", P, C)
 }
 
-type state func(*Parser) state
+type state func(*Parser, *tree.Program) state
 
 func RunParser(channel chan lexer.Piece) {
 	parser := &Parser{channel: channel}
-	for state := start; state != nil; {
-		state = state(parser)
+	program := &tree.Program{
+		Statements: []tree.Statement{},
 	}
+	for state := startState; state != nil; {
+		state = state(parser, program)
+	}
+	fmt.Println(program)
 }
 
-func (p *Parser) move(piece *lexer.Piece) {
-	p.prev = p.cur
-	p.cur = piece
-}
-
-func start(p *Parser) state {
+func (p *Parser) move() {
 	for {
 		select {
 		case piece := <-p.channel:
-			p.move(&piece)
-
-			// if the line is starting with a keyword,
-			// then it is a Declaration statement
-			if p.cur.Kind == lexer.Keyword {
-				return createVariable
-			}
-
-			// if the line is starting with an identifier,
-			// then it is an Assignment statement
-			if p.cur.Kind == lexer.Identifier {
-				return nil
-			}
-
-			// Kill the parser if we reach the end of the file
-			if p.cur.Kind == lexer.Eof {
-				return nil
-			}
+			p.prev = p.cur
+			p.cur = &piece
+			fmt.Println("moving -->", p)
+			return
 		}
+
 	}
 }
 
-func createVariable(p *Parser) state {
-	switch p.cur.Value {
-	case "yen":
-		fmt.Println("number variable")
-		return createNumberVariable
-	case "sol":
-		fmt.Println("string variable")
-		return createStringVariable
+func startState(parser *Parser, program *tree.Program) state {
+
+	parser.move()
+
+	if parser.cur.Kind == lexer.Keyword {
+		return declarationState
 	}
+
+	// if the line is starting with an identifier,
+	// then it is an Assignment statement
+	if parser.cur.Kind == lexer.Identifier {
+		return nil
+	}
+
+	// Kill the parser if we reach the end of the file
+	if parser.cur.Kind == lexer.Eof {
+		return nil
+	}
+
 	return nil
 }
 
-func createNumberVariable(p *Parser) state {
-	fmt.Println("number variable created")
-	return start
+type Variable struct {
+	Datatype string
+	Name     string
+	Value    string
 }
 
-func createStringVariable(p *Parser) state {
+// String implements tree.Statement.
+func (v *Variable) String() string {
+	return fmt.Sprintf("%s %s %s\n", v.Datatype, v.Name, v.Value)
+}
+
+// statementNode implements tree.Statement.
+func (v *Variable) StatementNode() {}
+
+func declarationState(parser *Parser, program *tree.Program) state {
+	switch parser.cur.Value {
+	case "yen":
+		return createNumberVariable
+	case "sol":
+		return createStringVariable
+	default:
+		return nil
+	}
+}
+
+func createNumberVariable(p *Parser, program *tree.Program) state {
+	variable := &Variable{Datatype: "number"}
+	if p.move(); p.cur.Kind == lexer.Identifier {
+		variable.Name = p.cur.Value
+	}
+	if p.move(); p.cur.Kind == lexer.AssignmentOperator {
+		program.Statements = append(program.Statements, variable)
+		return expressionState
+	}
+	return startState
+}
+
+func expressionState(p *Parser, program *tree.Program) state {
+	
+	for p.move(); p.cur.Kind != lexer.Eol; p.move() {
+		fmt.Println("expressionState")
+	}
+
+	return startState
+}
+
+func createStringVariable(p *Parser, program *tree.Program) state {
 	fmt.Println("string variable created")
-	return start
+	return startState
 }
