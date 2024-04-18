@@ -19,5 +19,5 @@ func main() {
 		return
 	}
 	_, channel := lexer.CreateLexer(input)
-	parser.RunParser(channel)
+	parser.Run(channel)
 }
