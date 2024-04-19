@@ -11,6 +11,20 @@ func (lex *Lexer) send(p PieceType) {
 	lex.start = lex.cur
 }
 
+func (lex *Lexer) sendIf(yes bool, p PieceType) {
+	if yes {
+		lex.send(p)
+	}
+}
+
+func (lex *Lexer) sendIfElse(yes bool, p1, p2 PieceType) {
+	if yes {
+		lex.send(p1)
+	} else {
+		lex.send(p2)
+	}
+}
+
 func (lex *Lexer) next() (r rune) {
 	if lex.cur >= len(lex.input) {
 		lex.size = 0
