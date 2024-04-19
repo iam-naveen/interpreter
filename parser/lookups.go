@@ -37,21 +37,46 @@ var prefixHandlers = prefixLookup{}
 var infixHandlers = infixLookup{}
 var stmtHandlers = stmtLookup{}
 
-func infix(kind lexer.PieceType, bp precedence, handler infixHandler) {
+func setInfixHandler(kind lexer.PieceType, bp precedence, handler infixHandler) {
 	precLookup[kind] = bp
 	infixHandlers[kind] = handler
 }
 
-func prefix(kind lexer.PieceType, handler prefixHandler) {
+func setPrefixHandler(kind lexer.PieceType, handler prefixHandler) {
 	precLookup[kind] = PRIMARY
 	prefixHandlers[kind] = handler
 }
 
-func stmt(kind lexer.PieceType, handler stmtHandler) {
+func setStmtHandler(kind lexer.PieceType, handler stmtHandler) {
 	precLookup[kind] = LOWEST
 	stmtHandlers[kind] = handler
 }
 
-func createStates() {
-	fmt.Println("Creating states yet to be implemented")
+func (p *Parser) createHandlers() {
+
+	fmt.Println("Creating handlers...")
+	fmt.Println()
+
+	setStmtHandler(lexer.DataType, parseStatement)
+	setStmtHandler(lexer.Identifier, parseStatement)
+	setStmtHandler(lexer.Number, parseStatement)
+	setStmtHandler(lexer.Boolean, parseStatement)
+
+	setPrefixHandler(lexer.Identifier, parseIdentifier)
+	setPrefixHandler(lexer.Number, parseNumber)
+	setPrefixHandler(lexer.StringLiteral, parseString)
+	setPrefixHandler(lexer.Boolean, parseBoolean)
+	setPrefixHandler(lexer.Minus, parsePrefix)
+	setPrefixHandler(lexer.Bang, parsePrefix)
+	setPrefixHandler(lexer.ParanOpen, parseGrouped)
+	// setPrefixHandler(lexer.BracketOpen, parseArray)
+
+	setInfixHandler(lexer.Plus, ADDITIVE, parseInfix)
+	setInfixHandler(lexer.Minus, ADDITIVE, parseInfix)
+	setInfixHandler(lexer.Star, MULTIPLICATIVE, parseInfix)
+	setInfixHandler(lexer.Slash, MULTIPLICATIVE, parseInfix)
+	setInfixHandler(lexer.Percent, MULTIPLICATIVE, parseInfix)
+	setInfixHandler(lexer.Equal, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.NotEqual, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.Assign, ASSIGNMENT, parseInfix)
 }

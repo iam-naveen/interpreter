@@ -6,13 +6,13 @@ import (
 
 	"github.com/iam-naveen/compiler/lexer"
 	"github.com/iam-naveen/compiler/tree"
+	"github.com/sanity-io/litter"
 )
 
 type Parser struct {
-	piece     *lexer.Piece
+	piece   *lexer.Piece
 	prev    *lexer.Piece
 	channel chan lexer.Piece
-	tree []tree.Stmt
 }
 
 func (p Parser) String() string {
@@ -25,16 +25,24 @@ func (p Parser) String() string {
 }
 
 func Run(channel chan lexer.Piece) {
-	createStates()
-	parser := &Parser{
-		channel: channel,
-		tree: []tree.Stmt{},
-	}
+	parser := &Parser{ channel: channel }
+	parser.createHandlers()
 	parser.move()
-	for handler, ok := stmtHandlers[parser.piece.Kind]; ok; {
+
+	program := &tree.Block{}
+
+	handler, present := stmtHandlers[parser.piece.Kind]
+	for present {
 		stmt := handler(parser)
 		if stmt != nil {
-			parser.tree = append(parser.tree, stmt)
+			 program.Children = append(program.Children, stmt)
+		} else {
+			fmt.Println("Error parsing statement", parser)
+			break
 		}
+		handler, present = stmtHandlers[parser.piece.Kind]
 	}
+
+	litter.Dump(program)
+	fmt.Println(program.Print(0, "", ""))
 }
