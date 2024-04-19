@@ -30,7 +30,7 @@ func Run(channel chan lexer.Piece, logging bool) {
 	parser.createHandlers()
 	parser.move()
 
-	program := &tree.Block{}
+	program := &tree.Program{}
 
 	handler, present := stmtHandlers[parser.piece.Kind]
 	for present {

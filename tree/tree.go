@@ -15,3 +15,11 @@ type Expr interface {
 	Expr()
 	print(level int, prefix, out string, last bool) string
 }
+
+const (
+	indent = "   "
+	pipe = "│"
+	Tee = "├──"
+	Last = "└──"
+	line = "─"
+)
