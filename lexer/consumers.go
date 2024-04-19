@@ -3,7 +3,7 @@ package lexer
 type consumer func(*Lexer) consumer
 
 func consumeAlphaNumeric(lex *Lexer) consumer {
-	lex.takeMany("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_")
+	lex.takeMany(alpha + numeric)
 	word := string(lex.input[lex.start:lex.cur])
 	if kind, ok := kindOf[word]; ok {
 		lex.send(kind)
@@ -13,9 +13,20 @@ func consumeAlphaNumeric(lex *Lexer) consumer {
 	return initial
 }
 
-func consumeNumber(lex *Lexer) consumer {
-	lex.takeMany("0123456789")
-	lex.send(Number)
+func consumeString(lex *Lexer) consumer {
+	lex.ignore() // consume the opening "
+	for lex.input[lex.cur] != '"' {
+		lex.next()
+		if lex.cur >= len(lex.input) {
+			lex.send(Unknown)
+			return nil
+		}
+	}
+	lex.send(StringLiteral)
+
+	// consume the closing "
+	lex.next()
+	lex.ignore()
+
 	return initial
 }
-

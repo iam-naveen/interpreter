@@ -61,6 +61,9 @@ func (p *Parser) createHandlers() {
 	setStmtHandler(lexer.Identifier, parseStatement)
 	setStmtHandler(lexer.Number, parseStatement)
 	setStmtHandler(lexer.Boolean, parseStatement)
+	setStmtHandler(lexer.StringLiteral, parseStatement)
+	setStmtHandler(lexer.If, parseStatement)
+	setStmtHandler(lexer.Print, parseStatement)
 
 	setPrefixHandler(lexer.Identifier, parseIdentifier)
 	setPrefixHandler(lexer.Number, parseNumber)
@@ -69,7 +72,6 @@ func (p *Parser) createHandlers() {
 	setPrefixHandler(lexer.Minus, parsePrefix)
 	setPrefixHandler(lexer.Bang, parsePrefix)
 	setPrefixHandler(lexer.ParanOpen, parseGrouped)
-	// setPrefixHandler(lexer.BracketOpen, parseArray)
 
 	setInfixHandler(lexer.Plus, ADDITIVE, parseInfix)
 	setInfixHandler(lexer.Minus, ADDITIVE, parseInfix)
@@ -79,4 +81,8 @@ func (p *Parser) createHandlers() {
 	setInfixHandler(lexer.Equal, RELATIONAL, parseInfix)
 	setInfixHandler(lexer.NotEqual, RELATIONAL, parseInfix)
 	setInfixHandler(lexer.Assign, ASSIGNMENT, parseInfix)
+	setInfixHandler(lexer.LessEqual, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.GreaterEqual, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.Less, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.Greater, RELATIONAL, parseInfix)
 }

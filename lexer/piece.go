@@ -10,6 +10,8 @@ const (
 
 	DataType
 	Print
+	If
+	Else
 
 	Identifier
 	Number
@@ -44,11 +46,13 @@ const (
 
 var kindOf = map[string]PieceType{
 	// Keywords
-	"yen":   DataType,
-	"sol":   DataType,
-	"sollu": Print,
-	"aam":   Boolean,
-	"illai": Boolean,
+	"yen":    DataType,
+	"sol":    DataType,
+	"sollu":  Print,
+	"aam":    Boolean,
+	"illai":  Boolean,
+	"endral": If,
+	"illana": Else,
 
 	// operators
 	"+": Plus,
@@ -56,7 +60,7 @@ var kindOf = map[string]PieceType{
 	"*": Star,
 	"/": Slash,
 	"%": Percent,
-	"=":  Assign,
+	"=": Assign,
 
 	// logical
 	"<":  Less,
@@ -77,7 +81,7 @@ var kindOf = map[string]PieceType{
 	"[": BracketOpen,
 	"]": BracketClose,
 
-	"\n": Eol,
+	";": Eol,
 }
 
 type Piece struct {
@@ -120,7 +124,7 @@ func (p Piece) String() string {
 	case Bang:
 		return fmt.Sprintf("bang: %s", p.Value)
 	case Equal:
-		return fmt.Sprintf("assignment: %s", p.Value)
+		return fmt.Sprintf("equal: %s", p.Value)
 	case NotEqual:
 		return fmt.Sprintf("not equal: %s", p.Value)
 	case LessEqual:
@@ -139,8 +143,14 @@ func (p Piece) String() string {
 		return fmt.Sprintf("bracket open: %s", p.Value)
 	case BracketClose:
 		return fmt.Sprintf("bracket close: %s", p.Value)
+	case Print:
+		return fmt.Sprintf("print: %s", p.Value)
+	case If:
+		return fmt.Sprintf("if: %s", p.Value)
+	case Else:
+		return fmt.Sprintf("else: %s", p.Value)
 	case Eol:
-		return "nextLine"
+		return ";"
 	case Eof:
 		return "END"
 	default:

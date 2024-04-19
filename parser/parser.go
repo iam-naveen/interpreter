@@ -41,6 +41,9 @@ func Run(channel chan lexer.Piece, logging bool) {
 			fmt.Println("Error parsing statement", parser)
 			break
 		}
+		if parser.piece.Kind == lexer.Eof {
+			break
+		}
 		handler, present = stmtHandlers[parser.piece.Kind]
 	}
 

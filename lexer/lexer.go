@@ -24,25 +24,36 @@ func (lex *Lexer) run() {
 	close(lex.channel)
 }
 
+const (
+	alpha        = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+	numeric     = "0123456789"
+)
+
 func initial(lex *Lexer) consumer {
 	for {
 		if lex.cur >= len(lex.input) {
 			lex.send(Eof)
 			return nil
 		}
-		if lex.takeOne("\n") {
+		if lex.takeOne(";") {
 			lex.send(Eol)
 			continue
 		}
-		if lex.takeOne(" \t") {
+		if lex.takeOne(" \n\t") {
+			lex.takeMany(" \n\t")
 			lex.ignore()
 			continue
 		}
-		if lex.takeOne("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_") {
+		if lex.takeOne(alpha) {
 			return consumeAlphaNumeric
 		}
 		if lex.takeOne("0123456789") {
-			return consumeNumber
+			lex.takeMany(numeric)
+			lex.send(Number)
+			continue
+		}
+		if lex.takeOne("\"") {
+			return consumeString
 		}
 		if lex.takeOne("+*-/%(){}[]") {
 			val := string(lex.input[lex.start:lex.cur])

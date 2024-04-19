@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"fmt"
 	"strconv"
 
 	"github.com/iam-naveen/compiler/lexer"
@@ -64,7 +65,7 @@ func parseBoolean(p *Parser) tree.Expr {
 	default:
 		panic("Invalid boolean value")
 	}
-	p.move()
+	p.move() 
 	return boolean
 }
 
@@ -97,4 +98,48 @@ func parseInfix(p *Parser, left tree.Expr, bp precedence) tree.Expr {
 		Operator: *operator,
 		Right:    right,
 	}
+}
+
+func parsePrint(p *Parser, left tree.Expr, _ precedence) tree.Expr {
+	printExpr := &tree.Print{ Piece: *p.piece }
+	printExpr.Value = left
+	p.move()
+	return printExpr
+}
+
+func parseIf(p *Parser, left tree.Expr, _ precedence) tree.Expr {
+	fmt.Println("Parsing if statement")
+	ifStmt := &tree.If{ 
+		Piece: *p.piece,
+		Condition: left,
+	}
+	p.move()
+	ifStmt.Body = parseBlockStatement(p)
+	if p.piece.Kind == lexer.Else {
+		p.move()
+		ifStmt.Alternate = parseBlockStatement(p)
+	}
+	return ifStmt
+}
+
+func parseBlockStatement(p *Parser) *tree.Block {
+	if p.piece.Kind != lexer.BraceOpen {
+		panic("Expected opening curly brace")
+	}
+	block := &tree.Block{ 
+		Piece: *p.piece,
+		Children: []tree.Stmt{},
+	}
+	p.move()
+	for p.piece.Kind != lexer.BraceClose {
+		stmt := parseStatement(p)
+		if stmt != nil {
+			block.Children = append(block.Children, stmt)
+		}
+		if p.piece.Kind == lexer.BraceClose {
+			break
+		}
+	}
+	p.move()
+	return block
 }

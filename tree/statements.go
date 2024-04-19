@@ -1,6 +1,7 @@
 package tree
 
 import (
+	"bytes"
 	"fmt"
 	"strings"
 
@@ -37,6 +38,7 @@ func (s Program) Print(level int, prefix, out string) string {
 	}
 	return out
 }
+
 // =====================================
 // ========= BLOCK STATEMENT ===========
 // =====================================
@@ -61,11 +63,12 @@ func (b *Block) print(level int, prefix, out string, last bool) string {
 	if len(b.Children) == 0 {
 		return out
 	}
+	margin := strings.Repeat(pipe+indent, level+1)
 	for i, stmt := range b.Children {
 		if i == len(b.Children)-1 {
-			out += stmt.print(level, prefix+Last, "", true)
+			out += stmt.print(level+1, Last, margin, true)
 		} else {
-			out += stmt.print(level, prefix+Tee, "", false)
+			out += stmt.print(level+1, Tee, margin, false)
 		}
 	}
 	return out
@@ -105,45 +108,117 @@ func (v *Declaration) String() string {
 }
 func (v *Declaration) Stmt() {}
 
-
 func (s *Declaration) print(level int, prefix, out string, last bool) string {
 	out += fmt.Sprintf("%s %s\n", prefix, s.Name.Value)
-	margin := strings.Repeat(indent, level+1)
-	out += s.Value.print(level+1, Last, pipe+margin, true)
-	return out
-}
-
-func (s *Identifier) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, s)
-	return out
-}
-
-func (s *Number) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, s)
-	return out
-}
-
-func (s *StringLiteral) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, s)
-	return out
-}
-
-func (b *Boolean) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, b)
-	return out
-}
-
-func (s *Binary) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, s.Operator.Value)
 	margin := strings.Repeat(pipe+indent, level+1)
-	out += s.Left.print(level+1, Tee, margin, last)
-	out += s.Right.print(level+1, Last, margin, false)
+	out += s.Value.print(level+1, Last, margin, true)
 	return out
 }
 
-func (s *Prefix) print(level int, prefix, out string, last bool) string {
-	out += fmt.Sprintf("%s %s\n", prefix, s.Operator.Value)
+// =====================================
+// ========= IF STATEMENT ==============
+// =====================================
+
+type IfStmt struct {
+	Piece     lexer.Piece
+	Condition Expr
+	Then      Stmt
+	Else      Stmt
+}
+
+func (i *IfStmt) String() string {
+	out := fmt.Sprintf("if %v %v\n", i.Condition, i.Then)
+	if i.Else != nil {
+		out += fmt.Sprintf("else %v", i.Else)
+	}
+	return out
+}
+
+func (i *IfStmt) Stmt() {}
+
+func (s *IfStmt) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s if %s\n", prefix, s.Condition)
 	margin := strings.Repeat(pipe+indent, level+1)
-	out += s.Right.print(level+1, Last, margin, true)
+	out += s.Then.print(level+1, Tee, margin, false)
+	if s.Else != nil {
+		out += s.Else.print(level+1, prefix, margin, true)
+	}
+	return out
+}
+
+// =====================================
+// ======== PRINT STATEMENT ============
+// =====================================
+
+type PrintStmt struct {
+	Piece lexer.Piece
+	Value Expr
+}
+
+func (p *PrintStmt) String() string {
+	return fmt.Sprintf("print %v\n", p.Value)
+}
+
+func (p *PrintStmt) Stmt() {}
+
+func (s *PrintStmt) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "print")
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += s.Value.print(level+1, Last, margin, true)
+	return out
+}
+
+// =====================================
+// ======== FUNCTION ===================
+// =====================================
+
+type Function struct {
+	Piece lexer.Piece
+	Name  lexer.Piece
+	Args  []lexer.Piece
+	Return lexer.Piece
+	Body  *Block
+}
+
+func (f *Function) String() string {
+	out := bytes.Buffer{}
+	out.WriteString(fmt.Sprintf("fn %s(", f.Name.Value))
+	for i, arg := range f.Args {
+		out.WriteString(arg.Value)
+		if i < len(f.Args)-1 {
+			out.WriteString(", ")
+		}
+	}
+	out.WriteString(") %v\n")
+	out.WriteString(f.Body.String())
+	return out.String()
+}
+
+func (f *Function) Stmt() {}
+
+func (s *Function) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s fn %s\n", prefix, s.Name.Value)
+	return out
+}
+
+// =====================================
+// ======== RETURN STATEMENT ===========
+// =====================================
+
+type ReturnStmt struct {
+	Piece lexer.Piece
+	Value Expr
+}
+
+func (r *ReturnStmt) String() string {
+	return fmt.Sprintf("return %v\n", r.Value)
+}
+
+func (r *ReturnStmt) Stmt() {}
+
+func (s *ReturnStmt) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s return\n", prefix)
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += s.Value.print(level+1, Last, margin, true)
 	return out
 }

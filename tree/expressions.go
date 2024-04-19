@@ -151,3 +151,77 @@ func (s *Prefix) print(level int, prefix, out string, last bool) string {
 	out += s.Right.print(level+1, Last, margin, true)
 	return out
 }
+
+// =====================================
+// ============= PRINT =================
+// =====================================
+
+type Print struct {
+	Piece lexer.Piece
+	Value Expr
+}
+
+func (p *Print) String() string {
+	return fmt.Sprintf("print %v", p.Value)
+}
+
+func (p *Print) Expr() {}
+
+func (p *Print) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "print")
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += p.Value.print(level+1, Last, margin, true)
+	return out
+}
+
+// =====================================
+// ======== IF Expression ==============
+// =====================================
+
+type If struct {
+	Condition Expr
+	Piece     lexer.Piece
+	Body      *Block
+	Alternate *Block
+}
+
+func (i *If) String() string {
+	return fmt.Sprintf("if %v %v", i.Condition, i.Body)
+}
+
+func (i *If) Expr() {}
+
+func (i *If) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "if")
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += i.Condition.print(level+1, Tee, margin, false)
+	if i.Alternate != nil {
+		out += i.Body.print(level+1, Tee, margin, false)
+		out += i.Alternate.print(level+1, Last, margin, true)
+		return out
+	}
+	out += i.Body.print(level+1, Last, margin, true)
+	return out
+}
+
+// =====================================
+// ======== ELSE Expression ============
+// =====================================
+
+type Else struct {
+	Piece lexer.Piece
+	Body  Block
+}
+
+func (e *Else) String() string {
+	return fmt.Sprintf("else %v", e.Body)
+}
+
+func (e *Else) Expr() {}
+
+func (e *Else) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "else")
+	margin := strings.Repeat(indent, level+1)
+	out += e.Body.print(level+1, Last, margin, true)
+	return out
+}
