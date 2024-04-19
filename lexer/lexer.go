@@ -44,14 +44,22 @@ func initial(lex *Lexer) consumer {
 		if lex.takeOne("0123456789") {
 			return consumeNumber
 		}
-		if lex.takeOne("+*-/%") {
+		if lex.takeOne("+*-/%(){}[]") {
 			val := string(lex.input[lex.start:lex.cur])
 			lex.send(kindOf[val])
 			continue
 		}
-		if lex.takeOne("=") {
-			lex.send(Equal)
-			continue
+		if lex.takeOne("=!<>") {
+			switch lex.input[lex.start] {
+			case '=':
+				lex.sendIfElse(lex.takeOne("="), Equal, Assign)
+			case '!':
+				lex.sendIfElse(lex.takeOne("="), NotEqual, Bang)
+			case '<':
+				lex.sendIfElse(lex.takeOne("="), LessEqual, Less)
+			case '>':
+				lex.sendIfElse(lex.takeOne("="), GreaterEqual, Greater)
+			}
 		} else {
 			lex.next()
 			lex.send(Unknown)

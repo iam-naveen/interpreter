@@ -7,10 +7,15 @@ type PieceType int
 const (
 	Eof PieceType = iota
 	Eol
-	Keyword
+
+	DataType
+	Print
+
 	Identifier
 	Number
+	Boolean
 	StringLiteral
+
 	Assign
 	Plus
 	Minus
@@ -24,31 +29,53 @@ const (
 	Bang
 	Equal
 	NotEqual
+	LessEqual
+	GreaterEqual
+
+	ParanOpen
+	ParanClose
+	BraceOpen
+	BraceClose
+	BracketOpen
+	BracketClose
+
 	Unknown
 )
 
 var kindOf = map[string]PieceType{
 	// Keywords
-	"yen":   Keyword,
-	"sol":   Keyword,
-	"sollu": Keyword,
+	"yen":   DataType,
+	"sol":   DataType,
+	"sollu": Print,
+	"aam":   Boolean,
+	"illai": Boolean,
 
-	// Arithmetic operators
+	// operators
 	"+": Plus,
 	"-": Minus,
 	"*": Star,
 	"/": Slash,
 	"%": Percent,
+	"=":  Assign,
 
-	// Logical operators
-	"=": Assign,
-	"<": Less,
-	">": Greater,
-	"!": Bang,
-	"&": Amper,
-	"|": Pipe,
+	// logical
+	"<":  Less,
+	">":  Greater,
+	"!":  Bang,
+	"&":  Amper,
+	"|":  Pipe,
 	"==": Equal,
-	"!=": Equal,
+	"!=": NotEqual,
+	"<=": LessEqual,
+	">=": GreaterEqual,
+
+	// Grouping
+	"(": ParanOpen,
+	")": ParanClose,
+	"{": BraceOpen,
+	"}": BraceClose,
+	"[": BracketOpen,
+	"]": BracketClose,
 
 	"\n": Eol,
 }
@@ -60,7 +87,7 @@ type Piece struct {
 
 func (p Piece) String() string {
 	switch p.Kind {
-	case Keyword:
+	case DataType:
 		return fmt.Sprintf("keyword: %s", p.Value)
 	case Identifier:
 		return fmt.Sprintf("identifier: %s", p.Value)
@@ -68,6 +95,8 @@ func (p Piece) String() string {
 		return fmt.Sprintf("number: %s", p.Value)
 	case StringLiteral:
 		return fmt.Sprintf("string: %s", p.Value)
+	case Boolean:
+		return fmt.Sprintf("boolean: %s", p.Value)
 	case Assign:
 		return fmt.Sprintf("assignment: %s", p.Value)
 	case Plus:
@@ -92,6 +121,24 @@ func (p Piece) String() string {
 		return fmt.Sprintf("bang: %s", p.Value)
 	case Equal:
 		return fmt.Sprintf("assignment: %s", p.Value)
+	case NotEqual:
+		return fmt.Sprintf("not equal: %s", p.Value)
+	case LessEqual:
+		return fmt.Sprintf("less equal: %s", p.Value)
+	case GreaterEqual:
+		return fmt.Sprintf("greater equal: %s", p.Value)
+	case ParanOpen:
+		return fmt.Sprintf("paran open: %s", p.Value)
+	case ParanClose:
+		return fmt.Sprintf("paran close: %s", p.Value)
+	case BraceOpen:
+		return fmt.Sprintf("brace open: %s", p.Value)
+	case BraceClose:
+		return fmt.Sprintf("brace close: %s", p.Value)
+	case BracketOpen:
+		return fmt.Sprintf("bracket open: %s", p.Value)
+	case BracketClose:
+		return fmt.Sprintf("bracket close: %s", p.Value)
 	case Eol:
 		return "nextLine"
 	case Eof:
