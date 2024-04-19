@@ -17,7 +17,6 @@ func parseStatement(p *Parser) tree.Stmt {
 }
 
 func (p *Parser) parseDeclarationStatement() tree.Stmt {
-	// fmt.Println("\nParsing declaration statement")
 	stmt := &tree.Declaration{ Datatype: *p.piece }
 	p.move()
 	stmt.Name = *p.piece
@@ -25,7 +24,9 @@ func (p *Parser) parseDeclarationStatement() tree.Stmt {
 	if p.piece.Kind == lexer.Assign {
 		p.move()
 		stmt.Value = p.parseExpression(LOWEST)
-		fmt.Println("Declaration statement parsed\n\t", stmt)
+		if p.logEnabled {
+			fmt.Println("Declaration statement parsed\n\t", stmt);
+		}
 		p.move()
 		return stmt
 	}
@@ -36,7 +37,9 @@ func (p *Parser) parserExpressionStatement() tree.Stmt {
 	stmt := &tree.ExpressionStmt{
 		Expression: p.parseExpression(LOWEST),
 	}
-	fmt.Println("Expression statement parsed\n\t", stmt)
+	if p.logEnabled {
+		fmt.Println("Expression statement parsed\n\t", stmt)
+	}
 	p.move()
 	return stmt
 }

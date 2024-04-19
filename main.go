@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/iam-naveen/compiler/lexer"
 	"github.com/iam-naveen/compiler/parser"
@@ -18,6 +19,12 @@ func main() {
 		fmt.Println("Error reading the file")
 		return
 	}
+	logging := false
+	if len(os.Args) > 2 {
+		if slices.Contains(os.Args, "-l") || slices.Contains(os.Args, "--log") {
+			logging = true
+		}
+	}
 	_, channel := lexer.CreateLexer(input)
-	parser.Run(channel)
+	parser.Run(channel, logging)
 }

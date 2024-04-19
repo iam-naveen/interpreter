@@ -10,9 +10,10 @@ import (
 )
 
 type Parser struct {
-	piece   *lexer.Piece
-	prev    *lexer.Piece
-	channel chan lexer.Piece
+	piece      *lexer.Piece
+	prev       *lexer.Piece
+	channel    chan lexer.Piece
+	logEnabled bool
 }
 
 func (p Parser) String() string {
@@ -24,8 +25,8 @@ func (p Parser) String() string {
 	return fmt.Sprintf("%s, %s", P, C)
 }
 
-func Run(channel chan lexer.Piece) {
-	parser := &Parser{ channel: channel }
+func Run(channel chan lexer.Piece, logging bool) {
+	parser := &Parser{channel: channel, logEnabled: logging}
 	parser.createHandlers()
 	parser.move()
 
@@ -35,7 +36,7 @@ func Run(channel chan lexer.Piece) {
 	for present {
 		stmt := handler(parser)
 		if stmt != nil {
-			 program.Children = append(program.Children, stmt)
+			program.Children = append(program.Children, stmt)
 		} else {
 			fmt.Println("Error parsing statement", parser)
 			break
@@ -43,6 +44,8 @@ func Run(channel chan lexer.Piece) {
 		handler, present = stmtHandlers[parser.piece.Kind]
 	}
 
-	litter.Dump(program)
+	if logging {
+		litter.Dump(program)
+	}
 	fmt.Println(program.Print(0, "", ""))
 }

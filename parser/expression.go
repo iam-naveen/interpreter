@@ -1,7 +1,6 @@
 package parser
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/iam-naveen/compiler/lexer"
@@ -14,7 +13,6 @@ func (p *Parser) parseExpression(pre precedence) tree.Expr {
 		panic("No prefix handler for " + p.piece.Value)
 	}
 	left := prefix(p)
-	// fmt.Println("Parsed", left)
 	for p.piece.Kind != lexer.Eol && pre < precLookup[p.piece.Kind] {
 		infix, has := infixHandlers[p.piece.Kind]
 		if !has {
@@ -71,10 +69,8 @@ func parseBoolean(p *Parser) tree.Expr {
 }
 
 func parseGrouped(p *Parser) tree.Expr {
-	// fmt.Println("Parsing group", p)
 	p.move()
 	expr := p.parseExpression(LOWEST)
-	fmt.Println("Parsed group", expr)
 	if p.piece.Kind != lexer.ParanClose {
 		panic("Expected closing paranthesis")
 	}
