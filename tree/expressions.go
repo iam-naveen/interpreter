@@ -7,18 +7,18 @@ import (
 )
 
 type Identifier struct {
-	Peice lexer.Piece
-	Value string
+	Piece lexer.Piece
+	Name string
 }
 func (i *Identifier) String() string {
-	return i.Value
+	return i.Name
 }
 func (i *Identifier) Expr() {}
 
 
 
 type Number struct {
-	Peice lexer.Piece
+	Piece lexer.Piece
 	Value int64
 }
 func (n *Number) String() string {
@@ -29,13 +29,34 @@ func (n *Number) Expr() {}
 
 
 type StringLiteral struct {
-	Peice lexer.Piece
+	Piece lexer.Piece
 	Value string
 }
 func (s *StringLiteral) String() string {
 	return s.Value
 }
 func (s *StringLiteral) Expr() {}
+
+
+
+type Boolean struct {
+	Piece lexer.Piece
+	Value bool
+}
+func (b *Boolean) String() string {
+	return fmt.Sprintf("%t", b.Value)
+}
+func (b *Boolean) Expr() {}
+
+
+type Array struct {
+	Piece lexer.Piece
+	Elements []Expr
+}
+func (a *Array) String() string {
+	return fmt.Sprintf("%v", a.Elements)
+}
+func (a *Array) Expr() {}
 
 
 

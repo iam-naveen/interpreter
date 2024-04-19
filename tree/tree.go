@@ -7,10 +7,11 @@ type Node interface {
 type Stmt interface {
 	Node
 	Stmt()
+	print(level int, prefix, out string, prev bool) string
 }
 
 type Expr interface {
 	Node
 	Expr()
+	print(level int, prefix, out string, last bool) string
 }
-
