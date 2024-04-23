@@ -11,6 +11,7 @@ import (
 // =====================================
 // ======== PROGRAM STRUCTURE ==========
 // =====================================
+
 type Program struct {
 	Children []Stmt
 }
@@ -170,6 +171,29 @@ func (s *WhileStmt) print(level int, prefix, out string, last bool) string {
 }
 
 // =====================================
+// ======== FOR STATEMENT ==============
+// =====================================
+
+type ForStmt struct {
+	Piece lexer.Piece
+	Count Expr
+	Body  *Block
+}
+
+func (f *ForStmt) String() string {
+	return fmt.Sprintf("for %v %v\n", f.Count, f.Body)
+}
+
+func (f *ForStmt) Stmt() {}
+
+func (s *ForStmt) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s times\n", prefix, s.Count)
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += s.Body.print(level+1, Tee, margin, true)
+	return out
+}
+
+// =====================================
 // ======== PRINT STATEMENT ============
 // =====================================
 
@@ -196,11 +220,11 @@ func (s *PrintStmt) print(level int, prefix, out string, last bool) string {
 // =====================================
 
 type Function struct {
-	Piece lexer.Piece
-	Name  lexer.Piece
-	Args  []Expr
+	Piece  lexer.Piece
+	Name   lexer.Piece
+	Args   []Expr
 	Return lexer.Piece
-	Body  *Block
+	Body   *Block
 }
 
 func (f *Function) String() string {

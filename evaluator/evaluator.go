@@ -25,6 +25,8 @@ func Eval(node tree.Node, env *object.Environment) {
 		evalIfStatement(node, env)
 	case *tree.WhileStmt:
 		evalWhileStatement(node, env)
+	case *tree.ForStmt:
+		evalForStatement(node, env)
 	case *tree.ExpressionStmt:
 		evalExpressionStatement(node, env)
 
@@ -52,6 +54,21 @@ func evalWhileStatement(stmt *tree.WhileStmt, env *object.Environment) {
 		Eval(stmt.Body, env)
 	}
 }
+
+func evalForStatement(stmt *tree.ForStmt, env *object.Environment) {
+	count := evaluateExpression(stmt.Count, env)
+	switch count := count.(type) {
+	case *object.Integer:
+		for i := int64(0); i < count.Value; i++ {
+			Eval(stmt.Body, env)
+		}
+	default:
+		fmt.Println("ERROR: Expected Constant Expression in For loop")
+		os.Exit(1)
+	}
+
+}
+
 
 func evalPrintStmt(stmt *tree.PrintStmt, env *object.Environment) {
 	result := evaluateExpression(stmt.Value, env)

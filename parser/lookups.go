@@ -64,8 +64,6 @@ func (p *Parser) createHandlers() {
 	setStmtHandler(lexer.Number, parseStatement)
 	setStmtHandler(lexer.Boolean, parseStatement)
 	setStmtHandler(lexer.StringLiteral, parseStatement)
-	// setStmtHandler(lexer.If, parseStatement)
-	// setStmtHandler(lexer.Print, parseStatement)
 
 	setPrefixHandler(lexer.Identifier, parseIdentifier)
 	setPrefixHandler(lexer.Number, parseNumber)

@@ -50,6 +50,8 @@ func (p *Parser) parserExpressionStatement() tree.Stmt {
 		return p.parseIfStatement(expr)
 	case lexer.While:
 		return p.parseWhileStatement(expr)
+	case lexer.For:
+		return p.parseForStatement(expr)
 	case lexer.Print:
 		printStmt := &tree.PrintStmt{ Piece: *p.piece }
 		printStmt.Value = expr
@@ -74,6 +76,17 @@ func (p *Parser) parseWhileStatement(expr tree.Expr) tree.Stmt {
 	}
 	whileStmt.Body = p.parseBlockStatement()
 	return whileStmt
+}
+
+func (p *Parser) parseForStatement(expr tree.Expr) tree.Stmt {
+	forStmt := &tree.ForStmt{ Count: expr }
+	p.move()
+	if p.piece.Kind != lexer.BraceOpen {
+		fmt.Println("Expected '{' after 'murai'")
+		os.Exit(1)
+	}
+	forStmt.Body = p.parseBlockStatement()
+	return forStmt
 }
 
 func (p *Parser) parseIfStatement(expr tree.Expr) tree.Stmt {

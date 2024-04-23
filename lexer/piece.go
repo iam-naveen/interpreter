@@ -13,6 +13,7 @@ const (
 	If
 	Else
 	While
+	For
 
 	Identifier
 	Number
@@ -57,6 +58,7 @@ var kindOf = map[string]PieceType{
 	"endral": If,
 	"illana": Else,
 	"varaikkum": While,
+	"murai":  For,
 
 	// operators
 	"+": Plus,
@@ -107,6 +109,8 @@ func (p Piece) String() string {
 		return fmt.Sprintf("boolean: %s", p.Value)
 	case While:
 		return fmt.Sprintf("while: %s", p.Value)
+	case For:
+		return fmt.Sprintf("for: %s", p.Value)
 	case Assign:
 		return fmt.Sprintf("assignment: %s", p.Value)
 	case Plus:
