@@ -93,6 +93,15 @@ func parseInfix(p *Parser, left tree.Expr, bp precedence) tree.Expr {
 	operator := p.piece
 	p.move()
 	right := p.parseExpression(bp)
+	if operator.Kind == lexer.Assign {
+		if ident, ok := left.(*tree.Identifier); ok {
+			return &tree.Assign{
+				Left:  *ident,
+				Right: right,
+			}
+		}
+		panic("Left hand side of assignment must be an identifier")
+	}
 	return &tree.Binary{
 		Left:     left,
 		Operator: *operator,

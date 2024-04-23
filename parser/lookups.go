@@ -54,16 +54,18 @@ func setStmtHandler(kind lexer.PieceType, handler stmtHandler) {
 
 func (p *Parser) createHandlers() {
 
-	fmt.Println("Creating handlers...")
-	fmt.Println()
+	if p.logEnabled {
+		fmt.Println("Creating handlers...")
+		fmt.Println()
+	}
 
 	setStmtHandler(lexer.DataType, parseStatement)
 	setStmtHandler(lexer.Identifier, parseStatement)
 	setStmtHandler(lexer.Number, parseStatement)
 	setStmtHandler(lexer.Boolean, parseStatement)
 	setStmtHandler(lexer.StringLiteral, parseStatement)
-	setStmtHandler(lexer.If, parseStatement)
-	setStmtHandler(lexer.Print, parseStatement)
+	// setStmtHandler(lexer.If, parseStatement)
+	// setStmtHandler(lexer.Print, parseStatement)
 
 	setPrefixHandler(lexer.Identifier, parseIdentifier)
 	setPrefixHandler(lexer.Number, parseNumber)
@@ -85,4 +87,6 @@ func (p *Parser) createHandlers() {
 	setInfixHandler(lexer.GreaterEqual, RELATIONAL, parseInfix)
 	setInfixHandler(lexer.Less, RELATIONAL, parseInfix)
 	setInfixHandler(lexer.Greater, RELATIONAL, parseInfix)
+	setInfixHandler(lexer.And, LOGICAL, parseInfix)
+	setInfixHandler(lexer.Or, LOGICAL, parseInfix)
 }

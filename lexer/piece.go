@@ -12,6 +12,7 @@ const (
 	Print
 	If
 	Else
+	While
 
 	Identifier
 	Number
@@ -33,6 +34,8 @@ const (
 	NotEqual
 	LessEqual
 	GreaterEqual
+	And
+	Or
 
 	ParanOpen
 	ParanClose
@@ -53,6 +56,7 @@ var kindOf = map[string]PieceType{
 	"illai":  Boolean,
 	"endral": If,
 	"illana": Else,
+	"varaikkum": While,
 
 	// operators
 	"+": Plus,
@@ -101,6 +105,8 @@ func (p Piece) String() string {
 		return fmt.Sprintf("string: %s", p.Value)
 	case Boolean:
 		return fmt.Sprintf("boolean: %s", p.Value)
+	case While:
+		return fmt.Sprintf("while: %s", p.Value)
 	case Assign:
 		return fmt.Sprintf("assignment: %s", p.Value)
 	case Plus:
@@ -131,6 +137,10 @@ func (p Piece) String() string {
 		return fmt.Sprintf("less equal: %s", p.Value)
 	case GreaterEqual:
 		return fmt.Sprintf("greater equal: %s", p.Value)
+	case And:
+		return fmt.Sprintf("and: %s", p.Value)
+	case Or:
+		return fmt.Sprintf("or: %s", p.Value)
 	case ParanOpen:
 		return fmt.Sprintf("paran open: %s", p.Value)
 	case ParanClose:

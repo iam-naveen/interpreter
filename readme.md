@@ -89,7 +89,7 @@ also trying to add tamil character support to the language
 என் a = 10;
 என் b = 20;
 
-a < b ஆக இருந்தால் {
+a < b என்றால் {
 
     "hello" சொல்லு;
 

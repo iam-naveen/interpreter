@@ -6,7 +6,6 @@ import (
 
 	"github.com/iam-naveen/compiler/lexer"
 	"github.com/iam-naveen/compiler/tree"
-	"github.com/sanity-io/litter"
 )
 
 type Parser struct {
@@ -25,7 +24,7 @@ func (p Parser) String() string {
 	return fmt.Sprintf("%s, %s", P, C)
 }
 
-func Run(channel chan lexer.Piece, logging bool) {
+func Parse(channel chan lexer.Piece, logging bool) *tree.Program {
 	parser := &Parser{channel: channel, logEnabled: logging}
 	parser.createHandlers()
 	parser.move()
@@ -46,9 +45,5 @@ func Run(channel chan lexer.Piece, logging bool) {
 		}
 		handler, present = stmtHandlers[parser.piece.Kind]
 	}
-
-	if logging {
-		litter.Dump(program)
-	}
-	fmt.Println(program.Print(0, "", ""))
+	return program
 }

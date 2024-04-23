@@ -98,13 +98,13 @@ func (s *ExpressionStmt) print(level int, prefix, out string, last bool) string 
 // =====================================
 
 type Declaration struct {
-	Datatype lexer.Piece
+	Datatype string
 	Name     lexer.Piece
 	Value    Expr
 }
 
 func (v *Declaration) String() string {
-	return fmt.Sprintf("%s %s %s\n", v.Datatype.Value, v.Name.Value, v.Value)
+	return fmt.Sprintf("%s %s %s\n", v.Datatype, v.Name.Value, v.Value)
 }
 func (v *Declaration) Stmt() {}
 
@@ -122,7 +122,7 @@ func (s *Declaration) print(level int, prefix, out string, last bool) string {
 type IfStmt struct {
 	Piece     lexer.Piece
 	Condition Expr
-	Then      Stmt
+	Then      *Block
 	Else      Stmt
 }
 
@@ -143,6 +143,29 @@ func (s *IfStmt) print(level int, prefix, out string, last bool) string {
 	if s.Else != nil {
 		out += s.Else.print(level+1, prefix, margin, true)
 	}
+	return out
+}
+
+// =====================================
+// ======== WHILE STATEMENT ============
+// =====================================
+
+type WhileStmt struct {
+	Piece     lexer.Piece
+	Condition Expr
+	Body      *Block
+}
+
+func (w *WhileStmt) String() string {
+	return fmt.Sprintf("while %v %v\n", w.Condition, w.Body)
+}
+
+func (w *WhileStmt) Stmt() {}
+
+func (s *WhileStmt) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s while %s\n", prefix, s.Condition)
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += s.Body.print(level+1, Tee, margin, true)
 	return out
 }
 
@@ -175,7 +198,7 @@ func (s *PrintStmt) print(level int, prefix, out string, last bool) string {
 type Function struct {
 	Piece lexer.Piece
 	Name  lexer.Piece
-	Args  []lexer.Piece
+	Args  []Expr
 	Return lexer.Piece
 	Body  *Block
 }
@@ -184,7 +207,7 @@ func (f *Function) String() string {
 	out := bytes.Buffer{}
 	out.WriteString(fmt.Sprintf("fn %s(", f.Name.Value))
 	for i, arg := range f.Args {
-		out.WriteString(arg.Value)
+		out.WriteString(arg.String())
 		if i < len(f.Args)-1 {
 			out.WriteString(", ")
 		}

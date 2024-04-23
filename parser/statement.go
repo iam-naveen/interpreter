@@ -2,6 +2,7 @@ package parser
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/iam-naveen/compiler/lexer"
 	"github.com/iam-naveen/compiler/tree"
@@ -17,8 +18,17 @@ func parseStatement(p *Parser) tree.Stmt {
 }
 
 func (p *Parser) parseDeclarationStatement() tree.Stmt {
-	stmt := &tree.Declaration{ Datatype: *p.piece }
+	stmt := &tree.Declaration{}
+	if p.piece.Value == "yen" {
+		stmt.Datatype = "INTEGER"
+	} else if p.piece.Value == "sol" {
+		stmt.Datatype = "STRING"
+	} 
 	p.move()
+	if p.piece.Kind != lexer.Identifier {
+		fmt.Println("Expected identifier got " + p.piece.Value)
+		os.Exit(1)
+	}
 	stmt.Name = *p.piece
 	p.move()
 	if p.piece.Kind == lexer.Assign {
@@ -34,10 +44,12 @@ func (p *Parser) parseDeclarationStatement() tree.Stmt {
 }
 
 func (p *Parser) parserExpressionStatement() tree.Stmt {
-	expr := p.parseExpression(LOWEST)
+	expr := p.parseExpression(LOWEST) // After parsing, we are at the next token
 	switch p.piece.Kind {
 	case lexer.If:
 		return p.parseIfStatement(expr)
+	case lexer.While:
+		return p.parseWhileStatement(expr)
 	case lexer.Print:
 		printStmt := &tree.PrintStmt{ Piece: *p.piece }
 		printStmt.Value = expr
@@ -53,6 +65,17 @@ func (p *Parser) parserExpressionStatement() tree.Stmt {
 	}
 }
 
+func (p *Parser) parseWhileStatement(expr tree.Expr) tree.Stmt {
+	whileStmt := &tree.WhileStmt{ Condition: expr }
+	p.move()
+	if p.piece.Kind != lexer.BraceOpen {
+		fmt.Println("Expected '{' after 'varaikkum'")
+		os.Exit(1)
+	}
+	whileStmt.Body = p.parseBlockStatement()
+	return whileStmt
+}
+
 func (p *Parser) parseIfStatement(expr tree.Expr) tree.Stmt {
 	ifStmt := &tree.IfStmt{ Condition: expr }
 	p.move()
@@ -63,7 +86,8 @@ func (p *Parser) parseIfStatement(expr tree.Expr) tree.Stmt {
 	if p.piece.Kind == lexer.Else {
 		p.move()
 		if p.piece.Kind != lexer.BraceOpen {
-			panic("Expected '{'")
+			ifStmt.Else = p.parserExpressionStatement()
+			return ifStmt
 		}
 		ifStmt.Else = p.parseBlockStatement()
 	}

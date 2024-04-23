@@ -25,8 +25,8 @@ func (lex *Lexer) run() {
 }
 
 const (
-	alpha        = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
-	numeric     = "0123456789"
+	alpha   = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_"
+	numeric = "0123456789"
 )
 
 func initial(lex *Lexer) consumer {
@@ -60,7 +60,7 @@ func initial(lex *Lexer) consumer {
 			lex.send(kindOf[val])
 			continue
 		}
-		if lex.takeOne("=!<>") {
+		if lex.takeOne("=!<>&|") {
 			switch lex.input[lex.start] {
 			case '=':
 				lex.sendIfElse(lex.takeOne("="), Equal, Assign)
@@ -70,6 +70,10 @@ func initial(lex *Lexer) consumer {
 				lex.sendIfElse(lex.takeOne("="), LessEqual, Less)
 			case '>':
 				lex.sendIfElse(lex.takeOne("="), GreaterEqual, Greater)
+			case '&':
+				lex.sendIfElse(lex.takeOne("&"), And, Amper)
+			case '|':
+				lex.sendIfElse(lex.takeOne("|"), Or, Pipe)
 			}
 		} else {
 			lex.next()

@@ -28,7 +28,7 @@ func (s *Identifier) print(level int, prefix, out string, last bool) string {
 }
 
 // ============================
-// ======== NUMBER  ===========
+// ========  NUMBER  ==========
 // ============================
 
 type Number struct {
@@ -48,7 +48,7 @@ func (s *Number) print(level int, prefix, out string, last bool) string {
 }
 
 // ============================
-// ======== STRING  ===========
+// ========  STRING  ==========
 // ============================
 
 type StringLiteral struct {
@@ -107,7 +107,7 @@ func (a *Array) Expr() {}
 // ===========================
 
 // ============================
-// ======== BINARY =============
+// ======== BINARY ============
 // ============================
 
 type Binary struct {
@@ -131,7 +131,29 @@ func (s *Binary) print(level int, prefix, out string, last bool) string {
 }
 
 // ============================
-// ======== PREFIX =============
+// ======== ASSIGN ============
+// ============================
+
+type Assign struct {
+	Left  Identifier
+	Right Expr
+}
+
+func (a *Assign) String() string {
+	return fmt.Sprintf("%v = %v", a.Left, a.Right)
+}
+
+func (a *Assign) Expr() {}
+
+func (a *Assign) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, a.Left.Name)
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += a.Right.print(level+1, Last, margin, true)
+	return out
+}
+
+// ============================
+// ======== PREFIX ============
 // ============================
 
 type Prefix struct {
