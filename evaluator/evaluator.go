@@ -19,6 +19,8 @@ func Eval(node tree.Node, env *object.Environment) {
 		evalBlock(node, env)
 	case *tree.PrintStmt:
 		evalPrintStmt(node, env)
+	case *tree.Input:
+		evalInput(node, env)
 	case *tree.Declaration:
 		evalDeclaration(node, env)
 	case *tree.IfStmt:
@@ -35,6 +37,40 @@ func Eval(node tree.Node, env *object.Environment) {
 		fmt.Println(err.Inspect())
 
 	}
+}
+
+func evalInput(input *tree.Input, env *object.Environment) {
+	switch input.DataType {
+	case "INTEGER":
+		evalIntegerInput(input, env)
+	case "STRING":
+		evalStringInput(input, env)
+	default:
+		fmt.Println("ERROR: Invalid Input")
+		os.Exit(1)
+	}
+}
+
+func evalIntegerInput(input *tree.Input, env *object.Environment) {
+	var value int64
+	fmt.Print(input.Variable.Name, " = ")
+	_, err := fmt.Scanf("%d", &value)
+	if err != nil {
+		fmt.Println("ERROR: Invalid Input")
+		os.Exit(1)
+	}
+	env.Set(input.Variable.Name, &object.Integer{Value: value})
+}
+
+func evalStringInput(input *tree.Input, env *object.Environment) {
+	var value string
+	fmt.Print(input.Variable.Name, " = ")
+	_, err := fmt.Scanf("%s", &value)
+	if err != nil {
+		fmt.Println("ERROR: Invalid Input")
+		os.Exit(1)
+	}
+	env.Set(input.Variable.Name, &object.String{Value: value})
 }
 
 func evalProgram(program *tree.Program, env *object.Environment) {
@@ -68,7 +104,6 @@ func evalForStatement(stmt *tree.ForStmt, env *object.Environment) {
 	}
 
 }
-
 
 func evalPrintStmt(stmt *tree.PrintStmt, env *object.Environment) {
 	result := evaluateExpression(stmt.Value, env)
@@ -132,9 +167,6 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 	case *tree.Binary:
 		left := evaluateExpression(expr.Left, env)
 		right := evaluateExpression(expr.Right, env)
-		if left.Type() != right.Type() {
-			return &object.Error{Message: fmt.Sprintf("Type Mismatch: Cannot perform operation with %s and %s", left.Type(), right.Type())}
-		}
 		switch expr.Operator.Kind {
 		case lexer.Plus:
 			return evaluatePlus(left, right)
@@ -144,6 +176,8 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 			return evaluateMultiply(left, right)
 		case lexer.Slash:
 			return evaluateDivide(left, right)
+		case lexer.Percent:
+			return &object.Integer{Value: left.(*object.Integer).Value % right.(*object.Integer).Value}
 		case lexer.Equal:
 			return &object.Boolean{Value: left.Inspect() == right.Inspect()}
 		case lexer.NotEqual:
@@ -175,15 +209,24 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 func evaluatePlus(left, right object.Object) object.Object {
 	switch left := left.(type) {
 	case *object.Integer:
+		if right.Type() == object.STRING_OBJ {
+			return &object.String{Value: fmt.Sprintf("%d%s", left.Value, right.(*object.String).Value)}
+		}
 		return &object.Integer{Value: left.Value + right.(*object.Integer).Value}
 	case *object.String:
-		return &object.String{Value: left.Value + right.(*object.String).Value}
+		if right.Type() == object.INTEGER_OBJ {
+			return &object.String{Value: left.Value + fmt.Sprintf("%d", right.(*object.Integer).Value)}
+		}
+		return &object.String{Value: string(left.Value) + right.(*object.String).Value}
 	default:
 		return &object.Error{Message: "Unknown Type"}
 	}
 }
 
 func evaluateMinus(left, right object.Object) object.Object {
+	if left.Type() != right.Type() {
+		return &object.Error{Message: fmt.Sprintf("Type Mismatch: Cannot perform operation with %s and %s", left.Type(), right.Type())}
+	}
 	switch left := left.(type) {
 	case *object.Integer:
 		return &object.Integer{Value: left.Value - right.(*object.Integer).Value}
@@ -195,6 +238,9 @@ func evaluateMinus(left, right object.Object) object.Object {
 }
 
 func evaluateMultiply(left, right object.Object) object.Object {
+	if left.Type() != right.Type() {
+		return &object.Error{Message: fmt.Sprintf("Type Mismatch: Cannot perform operation with %s and %s", left.Type(), right.Type())}
+	}
 	switch left := left.(type) {
 	case *object.Integer:
 		return &object.Integer{Value: left.Value * right.(*object.Integer).Value}
@@ -206,6 +252,9 @@ func evaluateMultiply(left, right object.Object) object.Object {
 }
 
 func evaluateDivide(left, right object.Object) object.Object {
+	if left.Type() != right.Type() {
+		return &object.Error{Message: fmt.Sprintf("Type Mismatch: Cannot perform operation with %s and %s", left.Type(), right.Type())}
+	}
 	switch left := left.(type) {
 	case *object.Integer:
 		return &object.Integer{Value: left.Value / right.(*object.Integer).Value}

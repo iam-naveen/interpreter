@@ -27,14 +27,14 @@ func (p *Parser) parseExpression(pre precedence) tree.Expr {
 func parseIdentifier(p *Parser) tree.Expr {
 	variable := &tree.Identifier{
 		Piece: *p.piece,
-		Name: p.piece.Value,
+		Name:  p.piece.Value,
 	}
 	p.move()
 	return variable
 }
 
 func parseNumber(p *Parser) tree.Expr {
-	number := &tree.Number{ Piece: *p.piece, }
+	number := &tree.Number{Piece: *p.piece}
 	val, err := strconv.ParseInt(p.piece.Value, 10, 64)
 	if err != nil {
 		panic(err)
@@ -65,7 +65,7 @@ func parseBoolean(p *Parser) tree.Expr {
 	default:
 		panic("Invalid boolean value")
 	}
-	p.move() 
+	p.move()
 	return boolean
 }
 
@@ -110,7 +110,7 @@ func parseInfix(p *Parser, left tree.Expr, bp precedence) tree.Expr {
 }
 
 func parsePrint(p *Parser, left tree.Expr, _ precedence) tree.Expr {
-	printExpr := &tree.Print{ Piece: *p.piece }
+	printExpr := &tree.Print{Piece: *p.piece}
 	printExpr.Value = left
 	p.move()
 	return printExpr
@@ -118,8 +118,8 @@ func parsePrint(p *Parser, left tree.Expr, _ precedence) tree.Expr {
 
 func parseIf(p *Parser, left tree.Expr, _ precedence) tree.Expr {
 	fmt.Println("Parsing if statement")
-	ifStmt := &tree.If{ 
-		Piece: *p.piece,
+	ifStmt := &tree.If{
+		Piece:     *p.piece,
 		Condition: left,
 	}
 	p.move()
@@ -135,8 +135,8 @@ func parseBlockStatement(p *Parser) *tree.Block {
 	if p.piece.Kind != lexer.BraceOpen {
 		panic("Expected opening curly brace")
 	}
-	block := &tree.Block{ 
-		Piece: *p.piece,
+	block := &tree.Block{
+		Piece:    *p.piece,
 		Children: []tree.Stmt{},
 	}
 	p.move()

@@ -10,6 +10,7 @@ const (
 
 	DataType
 	Print
+	Input
 	If
 	Else
 	While
@@ -50,15 +51,16 @@ const (
 
 var kindOf = map[string]PieceType{
 	// Keywords
-	"yen":    DataType,
-	"sol":    DataType,
-	"sollu":  Print,
-	"aam":    Boolean,
-	"illai":  Boolean,
-	"endral": If,
-	"illana": Else,
+	"yen":       DataType,
+	"sol":       DataType,
+	"sollu":     Print,
+	"aam":       Boolean,
+	"illai":     Boolean,
+	"endral":    If,
+	"illana":    Else,
 	"varaikkum": While,
-	"murai":  For,
+	"murai":     For,
+	"kodu":      Input,
 
 	// operators
 	"+": Plus,
@@ -159,6 +161,8 @@ func (p Piece) String() string {
 		return fmt.Sprintf("bracket close: %s", p.Value)
 	case Print:
 		return fmt.Sprintf("print: %s", p.Value)
+	case Input:
+		return fmt.Sprintf("input: %s", p.Value)
 	case If:
 		return fmt.Sprintf("if: %s", p.Value)
 	case Else:

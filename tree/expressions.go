@@ -197,6 +197,32 @@ func (p *Print) print(level int, prefix, out string, last bool) string {
 }
 
 // =====================================
+// ============= INPUT =================
+// =====================================
+
+type Input struct {
+	Piece    lexer.Piece
+	Variable Identifier
+	DataType string
+}
+
+// Stmt implements Stmt.
+func (*Input) Stmt() {
+	panic("unimplemented")
+}
+
+func (i *Input) String() string {
+	return fmt.Sprintf("get %v", i.Variable)
+}
+
+func (i *Input) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "input")
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += fmt.Sprintf("%s %s\n", margin, i.Variable)
+	return out
+}
+
+// =====================================
 // ======== IF Expression ==============
 // =====================================
 

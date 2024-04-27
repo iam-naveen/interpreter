@@ -18,29 +18,62 @@ func parseStatement(p *Parser) tree.Stmt {
 }
 
 func (p *Parser) parseDeclarationStatement() tree.Stmt {
-	stmt := &tree.Declaration{}
+	var datatype string
+	var name lexer.Piece
 	if p.piece.Value == "yen" {
-		stmt.Datatype = "INTEGER"
+		datatype = "INTEGER"
 	} else if p.piece.Value == "sol" {
-		stmt.Datatype = "STRING"
-	} 
+		datatype = "STRING"
+	}
 	p.move()
 	if p.piece.Kind != lexer.Identifier {
 		fmt.Println("Expected identifier got " + p.piece.Value)
 		os.Exit(1)
 	}
-	stmt.Name = *p.piece
+	name = *p.piece
 	p.move()
-	if p.piece.Kind == lexer.Assign {
-		p.move()
-		stmt.Value = p.parseExpression(LOWEST)
+	switch p.piece.Kind {
+	case lexer.Eol:
+		stmt := &tree.Declaration{
+			Datatype: datatype,
+			Name:     name,
+		}
 		if p.logEnabled {
-			fmt.Println("Declaration statement parsed\n\t", stmt);
+			fmt.Println("Declaration statement parsed\n\t", stmt)
 		}
 		p.move()
 		return stmt
+	case lexer.Assign:
+		p.move()
+		stmt := &tree.Declaration{
+			Datatype: datatype,
+			Name:     name,
+			Value:    p.parseExpression(LOWEST),
+		}
+		if p.logEnabled {
+			fmt.Println("Declaration statement parsed\n\t", stmt)
+		}
+		p.move()
+		return stmt
+	case lexer.Input:
+		inputStmt := &tree.Input{
+			Piece: *p.piece,
+			Variable: tree.Identifier{
+				Piece: *p.prev,
+				Name:  p.prev.Value,
+			},
+			DataType: datatype,
+		}
+		p.move()
+		if p.piece.Kind != lexer.Eol {
+			fmt.Println("Expected ;")
+			os.Exit(1)
+		}
+		p.move()
+		return inputStmt
+	default:
+		return nil
 	}
-	return nil
 }
 
 func (p *Parser) parserExpressionStatement() tree.Stmt {
@@ -53,7 +86,7 @@ func (p *Parser) parserExpressionStatement() tree.Stmt {
 	case lexer.For:
 		return p.parseForStatement(expr)
 	case lexer.Print:
-		printStmt := &tree.PrintStmt{ Piece: *p.piece }
+		printStmt := &tree.PrintStmt{Piece: *p.piece}
 		printStmt.Value = expr
 		p.move()
 		if p.piece.Kind != lexer.Eol {
@@ -63,12 +96,12 @@ func (p *Parser) parserExpressionStatement() tree.Stmt {
 		return printStmt
 	default:
 		p.move()
-		return &tree.ExpressionStmt{ Expression: expr }
+		return &tree.ExpressionStmt{Expression: expr}
 	}
 }
 
 func (p *Parser) parseWhileStatement(expr tree.Expr) tree.Stmt {
-	whileStmt := &tree.WhileStmt{ Condition: expr }
+	whileStmt := &tree.WhileStmt{Condition: expr}
 	p.move()
 	if p.piece.Kind != lexer.BraceOpen {
 		fmt.Println("Expected '{' after 'varaikkum'")
@@ -79,7 +112,7 @@ func (p *Parser) parseWhileStatement(expr tree.Expr) tree.Stmt {
 }
 
 func (p *Parser) parseForStatement(expr tree.Expr) tree.Stmt {
-	forStmt := &tree.ForStmt{ Count: expr }
+	forStmt := &tree.ForStmt{Piece: *p.piece, Count: expr}
 	p.move()
 	if p.piece.Kind != lexer.BraceOpen {
 		fmt.Println("Expected '{' after 'murai'")
@@ -90,7 +123,7 @@ func (p *Parser) parseForStatement(expr tree.Expr) tree.Stmt {
 }
 
 func (p *Parser) parseIfStatement(expr tree.Expr) tree.Stmt {
-	ifStmt := &tree.IfStmt{ Condition: expr }
+	ifStmt := &tree.IfStmt{Condition: expr}
 	p.move()
 	if p.piece.Kind != lexer.BraceOpen {
 		panic("Expected '{'")
@@ -108,7 +141,7 @@ func (p *Parser) parseIfStatement(expr tree.Expr) tree.Stmt {
 }
 
 func (p *Parser) parseBlockStatement() *tree.Block {
-	block := &tree.Block{ Piece: *p.piece }
+	block := &tree.Block{Piece: *p.piece}
 	p.move()
 	for p.piece.Kind != lexer.BraceClose {
 		stmt := parseStatement(p)
