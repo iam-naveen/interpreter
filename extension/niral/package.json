@@ -1,0 +1,25 @@
+{
+  "name": "niral",
+  "displayName": "niral",
+  "description": "Syntax Highlighting for Niral Programming Language",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.54.0"
+  },
+  "categories": [
+    "Programming Languages"
+  ],
+  "contributes": {
+    "languages": [{
+      "id": "niral",
+      "aliases": ["Niral", "niral"],
+      "extensions": [".n"],
+      "configuration": "./language-configuration.json"
+    }],
+    "grammars": [{
+      "language": "niral",
+      "scopeName": "source.n",
+      "path": "./syntaxes/niral.tmLanguage.json"
+    }]
+  }
+}
