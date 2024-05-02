@@ -10,16 +10,25 @@
     "Programming Languages"
   ],
   "contributes": {
-    "languages": [{
-      "id": "niral",
-      "aliases": ["Niral", "niral"],
-      "extensions": [".n"],
-      "configuration": "./language-configuration.json"
-    }],
-    "grammars": [{
-      "language": "niral",
-      "scopeName": "source.n",
-      "path": "./syntaxes/niral.tmLanguage.json"
-    }]
+    "languages": [
+      {
+        "id": "niral",
+        "aliases": [
+          "Niral",
+          "niral"
+        ],
+        "extensions": [
+          ".n"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "niral",
+        "scopeName": "source.n",
+        "path": "./syntaxes/niral.tmLanguage.json"
+      }
+    ]
   }
 }
