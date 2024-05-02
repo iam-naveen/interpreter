@@ -88,4 +88,5 @@ func (p *Parser) createHandlers() {
 	setInfixHandler(lexer.And, LOGICAL, parseInfix)
 	setInfixHandler(lexer.Or, LOGICAL, parseInfix)
 	setInfixHandler(lexer.BracketOpen, MEMBER, parseIndex)
+	setInfixHandler(lexer.Length, CALL, parseCall)
 }

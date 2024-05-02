@@ -220,7 +220,6 @@ func (s *PrintStmt) print(level int, prefix, out string, last bool) string {
 // =====================================
 
 type Function struct {
-	Piece  lexer.Piece
 	Name   lexer.Piece
 	Args   []Expr
 	Return lexer.Piece

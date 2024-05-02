@@ -9,12 +9,14 @@ const (
 	Eol
 
 	DataType
-	Print
-	Input
 	If
 	Else
 	While
 	For
+
+	Print
+	Input
+	Length
 
 	Identifier
 	Number
@@ -53,14 +55,17 @@ var kindOf = map[string]PieceType{
 	// Keywords
 	"yen":       DataType,
 	"sol":       DataType,
-	"sollu":     Print,
 	"aam":       Boolean,
 	"illai":     Boolean,
 	"endral":    If,
 	"illana":    Else,
 	"varaikkum": While,
 	"murai":     For,
+
+	// builtins
+	"sollu":     Print,
 	"kodu":      Input,
+	"neelam":    Length,
 
 	// operators
 	"+": Plus,

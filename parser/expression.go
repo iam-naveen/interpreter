@@ -123,6 +123,15 @@ func parseIndex(p *Parser, left tree.Expr, _ precedence) tree.Expr {
 	return index
 }
 
+func parseCall(p *Parser, left tree.Expr, _ precedence) tree.Expr {
+	call := &tree.Length{
+		Piece: *p.piece,
+		Value:  left,
+	}
+	p.move()
+	return call
+}
+
 func parsePrint(p *Parser, left tree.Expr, _ precedence) tree.Expr {
 	printExpr := &tree.Print{Piece: *p.piece}
 	printExpr.Value = left

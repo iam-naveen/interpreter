@@ -244,6 +244,28 @@ func (i *Input) print(level int, prefix, out string, last bool) string {
 }
 
 // =====================================
+// ============= LENGTH ================
+// =====================================
+
+type Length struct {
+	Piece lexer.Piece
+	Value Expr
+}
+
+func (l *Length) String() string {
+	return fmt.Sprintf("length %v", l.Value)
+}
+
+func (l *Length) Expr() {}
+
+func (l *Length) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s\n", prefix, "length")
+	margin := strings.Repeat(pipe+indent, level+1)
+	out += l.Value.print(level+1, Last, margin, true)
+	return out
+}
+
+// =====================================
 // ======== IF Expression ==============
 // =====================================
 

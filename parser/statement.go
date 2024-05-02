@@ -55,6 +55,15 @@ func (p *Parser) parseDeclarationStatement() tree.Stmt {
 		}
 		p.move()
 		return stmt
+
+	// TODO: Implement builtin function calls
+	// case lexer.Identifier:
+	// 	if _, ok := evaluator.Builtins[p.piece.Value]; ok {
+	// 		fmt.Println("Found builtin function", p.piece.Value)
+	// 		p.move()
+	// 	}
+	// 	return nil
+
 	case lexer.Input:
 		inputStmt := &tree.Input{
 			Piece: *p.piece,

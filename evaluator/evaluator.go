@@ -177,7 +177,15 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 				return &object.Error{Message: "Index out of range"}
 			}
 			return &object.String{Value: string(left.Value[i])}
-		}	
+		}
+	case *tree.Length:
+		value := evaluateExpression(expr.Value, env)
+		switch value := value.(type) {
+		case *object.String:
+			return &object.Integer{Value: int64(len(value.Value))}
+		default:
+			return &object.Error{Message: "Length can only be applied to Strings"}
+		}
 	case *tree.Binary:
 		left := evaluateExpression(expr.Left, env)
 		right := evaluateExpression(expr.Right, env)
