@@ -1,6 +1,7 @@
 package evaluator
 
 import (
+	"bufio"
 	"fmt"
 	"os"
 
@@ -8,6 +9,8 @@ import (
 	"github.com/iam-naveen/compiler/object"
 	"github.com/iam-naveen/compiler/tree"
 )
+
+var console = bufio.NewReader(os.Stdin)
 
 func Eval(node tree.Node, env *object.Environment) {
 	switch node := node.(type) {
@@ -40,6 +43,7 @@ func Eval(node tree.Node, env *object.Environment) {
 }
 
 func evalInput(input *tree.Input, env *object.Environment) {
+
 	switch input.DataType {
 	case "INTEGER":
 		evalIntegerInput(input, env)
@@ -63,14 +67,14 @@ func evalIntegerInput(input *tree.Input, env *object.Environment) {
 }
 
 func evalStringInput(input *tree.Input, env *object.Environment) {
-	var value string
 	fmt.Print(input.Variable.Name, " = ")
-	_, err := fmt.Scanf("%s", &value)
+	str, err := console.ReadString('\n')
+	str = str[:len(str)-1] // Remove the delimeter '\n'
 	if err != nil {
 		fmt.Println("ERROR: Invalid Input")
 		os.Exit(1)
 	}
-	env.Set(input.Variable.Name, &object.String{Value: value})
+	env.Set(input.Variable.Name, &object.String{Value: str})
 }
 
 func evalProgram(program *tree.Program, env *object.Environment) {
