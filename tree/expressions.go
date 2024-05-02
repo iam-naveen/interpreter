@@ -86,6 +86,9 @@ func (b *Boolean) print(level int, prefix, out string, last bool) string {
 	out += fmt.Sprintf("%s %s\n", prefix, b)
 	return out
 }
+// ===========================
+// === COMPLEX EXPRESSIONS ===
+// ===========================
 
 // ============================
 // ======== ARRAY ==============
@@ -102,9 +105,27 @@ func (a *Array) String() string {
 
 func (a *Array) Expr() {}
 
-// ===========================
-// === COMPLEX EXPRESSIONS ===
-// ===========================
+// ==============================
+// ======== Access ==============
+// ==============================
+
+type Access struct {
+	Piece lexer.Piece
+	Left  Expr
+	Index Expr
+}
+
+func (a *Access) String() string {
+	return fmt.Sprintf("%v[%v]", a.Left, a.Index)
+}
+
+func (a *Access) Expr() {}
+
+func (a *Access) print(level int, prefix, out string, last bool) string {
+	out += fmt.Sprintf("%s %s[ %s ]", prefix, a.Left, a.Index)
+	return out
+}
+
 
 // ============================
 // ======== BINARY ============

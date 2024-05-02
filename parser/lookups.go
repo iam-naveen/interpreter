@@ -72,7 +72,7 @@ func (p *Parser) createHandlers() {
 	setPrefixHandler(lexer.Minus, parsePrefix)
 	setPrefixHandler(lexer.Bang, parsePrefix)
 	setPrefixHandler(lexer.ParanOpen, parseGrouped)
-
+	
 	setInfixHandler(lexer.Plus, ADDITIVE, parseInfix)
 	setInfixHandler(lexer.Minus, ADDITIVE, parseInfix)
 	setInfixHandler(lexer.Star, MULTIPLICATIVE, parseInfix)
@@ -87,4 +87,5 @@ func (p *Parser) createHandlers() {
 	setInfixHandler(lexer.Greater, RELATIONAL, parseInfix)
 	setInfixHandler(lexer.And, LOGICAL, parseInfix)
 	setInfixHandler(lexer.Or, LOGICAL, parseInfix)
+	setInfixHandler(lexer.BracketOpen, MEMBER, parseIndex)
 }

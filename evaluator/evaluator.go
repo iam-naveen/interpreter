@@ -164,6 +164,20 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 			return &object.Error{Message: "Unknown identifier"}
 		}
 		return res
+	case *tree.Access:
+		left := evaluateExpression(expr.Left, env)
+		index := evaluateExpression(expr.Index, env)
+		switch left := left.(type) {
+		case *object.String:
+			if index.Type() != object.INTEGER_OBJ {
+				return &object.Error{Message: "Index must be an Integer"}
+			}
+			i := index.(*object.Integer).Value
+			if i < 0 || i >= int64(len(left.Value)) {
+				return &object.Error{Message: "Index out of range"}
+			}
+			return &object.String{Value: string(left.Value[i])}
+		}	
 	case *tree.Binary:
 		left := evaluateExpression(expr.Left, env)
 		right := evaluateExpression(expr.Right, env)

@@ -109,6 +109,20 @@ func parseInfix(p *Parser, left tree.Expr, bp precedence) tree.Expr {
 	}
 }
 
+func parseIndex(p *Parser, left tree.Expr, _ precedence) tree.Expr {
+	index := &tree.Access{
+		Piece: *p.piece,
+		Left:  left,
+	}
+	p.move()
+	index.Index = p.parseExpression(LOWEST)
+	if p.piece.Kind != lexer.BracketClose {
+		panic("Expected closing bracket")
+	}
+	p.move()
+	return index
+}
+
 func parsePrint(p *Parser, left tree.Expr, _ precedence) tree.Expr {
 	printExpr := &tree.Print{Piece: *p.piece}
 	printExpr.Value = left
