@@ -190,6 +190,25 @@ func evaluateExpression(expr tree.Expr, env *object.Environment) object.Object {
 		default:
 			return &object.Error{Message: "Length can only be applied to Strings"}
 		}
+	case *tree.Prefix:
+		right := evaluateExpression(expr.Right, env)
+		switch expr.Operator.Kind {
+		case lexer.Minus:
+			if right.Type() != object.INTEGER_OBJ {
+				return &object.Error{Message: "Invalid Operand Type"}
+			}
+			return &object.Integer{Value: -right.(*object.Integer).Value}
+		case lexer.Plus:
+			if right.Type() != object.INTEGER_OBJ {
+				return &object.Error{Message: "Invalid Operand Type"}
+			}
+			return right
+		case lexer.Bang:
+			if right.Type() != object.BOOLEAN_OBJ {
+				return &object.Error{Message: "Invalid Operand Type"}
+			}
+			return &object.Boolean{Value: !right.(*object.Boolean).Value}
+		}
 	case *tree.Binary:
 		left := evaluateExpression(expr.Left, env)
 		right := evaluateExpression(expr.Right, env)
