@@ -6,12 +6,14 @@ type Lexer struct {
 	cur     int // current position in input
 	size    int // size of the current piece
 	channel chan Piece
+	log     bool
 }
 
-func CreateLexer(input []byte) (*Lexer, chan Piece) {
+func CreateLexer(input []byte, lexLog bool) (*Lexer, chan Piece) {
 	lex := &Lexer{
 		input:   input,
 		channel: make(chan Piece),
+		log:     lexLog,
 	}
 	go lex.run()
 	return lex, lex.channel

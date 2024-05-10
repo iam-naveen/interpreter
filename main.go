@@ -23,12 +23,16 @@ func main() {
 		return
 	}
 	logging := false
+	lexLog := false
 	if len(os.Args) > 2 {
 		if slices.Contains(os.Args, "-l") || slices.Contains(os.Args, "--log") {
 			logging = true
 		}
+		if slices.Contains(os.Args, "--lex-log") {
+			lexLog = true
+		}
 	}
-	_, channel := lexer.CreateLexer(input)
+	_, channel := lexer.CreateLexer(input, lexLog)
 	ast := parser.Parse(channel, logging)
 	if logging {
 		litter.Dump(ast)

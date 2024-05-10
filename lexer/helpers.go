@@ -1,12 +1,16 @@
 package lexer
 
 import (
+	"fmt"
 	"strings"
 	"unicode/utf8"
 )
 
 func (lex *Lexer) send(p PieceType) {
 	piece := Piece{p, string(lex.input[lex.start:lex.cur])}
+	if (lex.log) {
+		fmt.Println(piece)
+	}
 	lex.channel <- piece
 	lex.start = lex.cur
 }
